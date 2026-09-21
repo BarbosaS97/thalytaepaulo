@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Thalyta &amp; Paulo — Convite de Casamento</title>
+  <meta name="description" content="Você está convidado para o casamento de Thalyta e Paulo.">
+  <meta name="theme-color" content="#141b18">
+
+  <!-- Fontes: Cormorant Garamond (títulos), Jost (corpo), Pinyon Script (nomes) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!--
+    O LIVRO
+    Cada <section class="pagina"> é uma página em tela cheia.
+    Os textos com data-cfg="..." e os links com data-link="..." são preenchidos
+    automaticamente pelo js/script.js a partir do bloco CONFIG (não edite aqui).
+  -->
+  <main id="livro" class="livro">
+
+    <!-- ============ PÁGINA 1 — CAPA (vídeo de fundo) ============ -->
+    <section class="pagina pagina--capa" aria-label="Capa do convite">
+      <div class="pagina__midia">
+        <!-- Foto de reserva: aparece até o vídeo carregar (ou se o vídeo não existir) -->
+        <img class="pagina__foto" data-capa-poster alt="" draggable="false" decoding="async">
+        <!-- O src é definido pelo JS (CONFIG.videoCapa) -->
+        <video class="capa__video" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video>
+      </div>
+      <div class="pagina__overlay"></div>
+
+      <div class="pagina__conteudo">
+        <div class="bloco">
+          <p class="sobretitulo anima">Convidamos você<br>para nosso casamento</p>
+          <div class="ornamento anima" aria-hidden="true"><span></span></div>
+          <h1 class="nomes nomes--grande anima" data-cfg="nomes">Thalyta e Paulo</h1>
+        </div>
+      </div>
+
+      <div class="pagina__rodape">
+        <button class="cta anima" type="button" data-acao="proxima">
+          <span>Toque para abrir</span>
+          <svg class="cta__seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+      </div>
+      <div class="pagina__sombra"></div>
+    </section>
+
+    <!-- ============ PÁGINA 2 — SAVE THE DATE ============ -->
+    <section class="pagina pagina--topo" aria-label="Save the date">
+      <div class="pagina__midia"><img class="pagina__foto" data-foto="0" alt="" draggable="false" decoding="async"></div>
+      <div class="pagina__overlay"></div>
+
+      <div class="pagina__conteudo">
+        <div class="bloco">
+          <h2 class="titulo anima">Save the date</h2>
+          <div class="ornamento anima" aria-hidden="true"><span></span></div>
+          <div class="data anima">
+            <span class="data__dia" data-cfg="dia">07</span>
+            <span class="data__resto"><span data-cfg="mes">Novembro</span><i aria-hidden="true">·</i><span data-cfg="ano">2026</span></span>
+          </div>
+
+          <!-- Contagem regressiva (preenchida pelo JS a partir de CONFIG.data e CONFIG.hora) -->
+          <div class="contagem anima" role="timer" aria-label="Contagem regressiva para o casamento">
+            <div class="contagem__itens">
+              <div class="contagem__item"><b data-c="dias">0</b><span>Dias</span></div>
+              <div class="contagem__item"><b data-c="horas">00</b><span>Horas</span></div>
+              <div class="contagem__item"><b data-c="min">00</b><span>Min</span></div>
+              <div class="contagem__item"><b data-c="seg">00</b><span>Seg</span></div>
+            </div>
+            <p class="contagem__fim" hidden>O grande dia chegou!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pagina__rodape">
+        <button class="cta anima" type="button" data-acao="proxima">
+          <span>Puxe aqui</span>
+          <svg class="cta__seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+      </div>
+      <div class="pagina__sombra"></div>
+    </section>
+
+    <!-- ============ PÁGINA 3 — CERIMÔNIA ============ -->
+    <section class="pagina" aria-label="Cerimônia">
+      <div class="pagina__midia"><img class="pagina__foto" data-foto="1" alt="" draggable="false" decoding="async"></div>
+      <div class="pagina__overlay"></div>
+
+      <div class="pagina__conteudo">
+        <div class="bloco">
+          <h2 class="sobretitulo anima">Com a bênção de seus pais</h2>
+
+          <div class="pais anima">
+            <div class="pais__col">
+              <span class="pais__rotulo">Pais da noiva</span>
+              <div class="pais__nomes" data-cfg="paisNoiva"></div>
+            </div>
+            <div class="pais__divisor" aria-hidden="true"></div>
+            <div class="pais__col">
+              <span class="pais__rotulo">Pais do noivo</span>
+              <div class="pais__nomes" data-cfg="paisNoivo"></div>
+            </div>
+          </div>
+
+          <p class="convite anima">convidam para a celebração<br>do casamento de</p>
+          <h3 class="nomes nomes--medio anima" data-cfg="nomes">Thalyta e Paulo</h3>
+          <div class="ornamento anima" aria-hidden="true"><span></span></div>
+
+          <div class="quando anima">
+            <p class="quando__data" data-cfg="dataBarras">07 | Novembro | 2026</p>
+            <p class="quando__hora" data-cfg="diaHora">Sábado, às 16h00</p>
+          </div>
+          <div class="onde anima">
+            <p class="onde__local" data-cfg="local">Nome do Local</p>
+            <p class="onde__endereco" data-cfg="endereco"></p>
+          </div>
+          <p class="chegada anima">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span data-cfg="chegada">Pedimos que chegue com 30 minutos de antecedência.</span>
+          </p>
+        </div>
+        </div>
+      </div>
+
+      <div class="pagina__rodape">
+        <button class="cta cta--discreta anima" type="button" data-acao="proxima">
+          <span>Virar página</span>
+          <svg class="cta__seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+      </div>
+      <div class="pagina__sombra"></div>
+    </section>
+
+    <!-- ============ PÁGINA 4 — INTERAÇÕES ============ -->
+    <section class="pagina pagina--topo" aria-label="Interações">
+      <div class="pagina__midia"><img class="pagina__foto" data-foto="2" alt="" draggable="false" decoding="async"></div>
+      <div class="pagina__overlay"></div>
+
+      <div class="pagina__conteudo">
+        <div class="bloco">
+          <h2 class="titulo titulo--menor anima">Toque nos ícones</h2>
+          <p class="convite anima">para interagir</p>
+          <div class="ornamento anima" aria-hidden="true"><span></span></div>
+
+          <div class="icones">
+            <a class="icone anima" data-link="mapa" href="#" style="--p:0">
+              <span class="icone__circulo">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              </span>
+              <span class="icone__rotulo">Saiba como chegar</span>
+            </a>
+            <a class="icone anima" data-link="presentes" href="#" style="--p:1">
+              <span class="icone__circulo">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/><path d="M12 8c-1-3-5-4.5-5-2s3 2 5 2zM12 8c1-3 5-4.5 5-2s-3 2-5 2z"/></svg>
+              </span>
+              <span class="icone__rotulo">Para nos presentear</span>
+            </a>
+            <a class="icone anima" data-link="confirmacao" href="#" style="--p:2">
+              <span class="icone__circulo">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg>
+              </span>
+              <span class="icone__rotulo">Confirmar presença</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pagina__rodape">
+        <button class="cta cta--discreta anima" type="button" data-acao="proxima">
+          <span>Virar página</span>
+          <svg class="cta__seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+      </div>
+      <div class="pagina__sombra"></div>
+    </section>
+
+    <!-- ============ PÁGINA 5 — ENCERRAMENTO ============ -->
+    <section class="pagina pagina--base" aria-label="Encerramento">
+      <div class="pagina__midia"><img class="pagina__foto" data-foto="3" alt="" draggable="false" decoding="async"></div>
+      <div class="pagina__overlay"></div>
+      <!-- Corações flutuantes (gerados pelo JS) -->
+      <div class="flutuantes" aria-hidden="true"></div>
+
+      <div class="pagina__conteudo">
+        <div class="bloco">
+          <div class="anima">
+            <svg class="coracao" viewBox="0 0 24 24" aria-hidden="true">
+              <path pathLength="1" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </div>
+          <h2 class="fecho anima">Contamos com você</h2>
+          <p class="poema anima">Sua presença fará deste dia<br>ainda mais especial.</p>
+          <div class="ornamento anima" aria-hidden="true"><span></span></div>
+          <p class="assinatura anima" data-cfg="nomes">Thalyta e Paulo</p>
+        </div>
+      </div>
+
+      <div class="pagina__rodape">
+        <button class="cta cta--discreta anima" type="button" data-acao="inicio">
+          <span>Rever o convite</span>
+        </button>
+      </div>
+      <div class="pagina__sombra"></div>
+    </section>
+
+  </main>
+
+  <!-- ============ CONTROLES FIXOS ============ -->
+  <nav id="pontos" class="pontos" aria-label="Páginas do convite"></nav>
+
+  <button id="btnAnt"  class="seta seta--ant"  type="button" aria-label="Página anterior" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <button id="btnProx" class="seta seta--prox" type="button" aria-label="Próxima página">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+
+  <button id="btnMusica" class="musica" type="button" aria-label="Tocar música" aria-pressed="false" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>
+      <line class="musica__risco" x1="3" y1="3" x2="21" y2="21"/>
+    </svg>
+  </button>
+  <audio id="audio" loop preload="none"></audio>
+
+  <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

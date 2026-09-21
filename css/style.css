@@ -1,0 +1,696 @@
+/* =====================================================================
+   CONVITE DE CASAMENTO — THALYTA & PAULO
+   Índice:
+   1. Variáveis (paleta, fontes, tempos)
+   2. Base / reset
+   3. O livro e as páginas (flip 3D)
+   4. Fundo (foto / vídeo) e overlay
+   5. Tipografia e componentes
+   6. Conteúdo de cada página
+   7. Controles (pontos, setas, música, aviso)
+   8. Animações de entrada
+   9. Responsivo e acessibilidade
+   ===================================================================== */
+
+/* ---------- 1. VARIÁVEIS ---------- */
+:root {
+  /* Paleta: sálvia + dourado champagne + marfim (combina com as roupas das fotos) */
+  --ouro:        #dcc48f;
+  --ouro-claro:  #f1e3bf;
+  --ouro-escuro: #b8975a;
+  --marfim:      #fbf6ec;
+  --salvia:      #8aa596;
+  --noite:       #141b18;
+  --noite-rgb:   14, 20, 17;
+
+  /* Fontes */
+  --serif:  "Cormorant Garamond", "Cormorant", Georgia, "Times New Roman", serif;
+  --sans:   "Jost", "Helvetica Neue", Arial, sans-serif;
+  --script: "Pinyon Script", "Snell Roundhand", "Apple Chancery", "Segoe Script", cursive;
+
+  /* Virada de página */
+  --dur:  1.1s;
+  --ease: cubic-bezier(.645, .045, .355, 1);
+}
+/* ---------- 2. BASE ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--noite);
+}
+
+body {
+  font-family: var(--sans);
+  font-weight: 300;
+  color: var(--marfim);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; }
+[hidden] { display: none !important; }
+
+:focus-visible { outline: 2px solid var(--ouro); outline-offset: 4px; }
+
+/* ---------- 3. LIVRO E PÁGINAS ---------- */
+.livro {
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  height: 100dvh;
+  perspective: 2400px;            /* profundidade do efeito 3D */
+  overflow: hidden;
+  touch-action: pan-y;            /* o navegador cuida do scroll vertical; o horizontal é nosso */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pagina {
+  --atraso: 0s;                   /* usado pelo JS para virar várias páginas em cascata */
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(160deg, #2b3a33, var(--noite));  /* cor de reserva se a foto faltar */
+  transform-origin: left center;  /* a página gira pela "lombada" (borda esquerda) */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+  box-shadow: 0 0 50px rgba(0, 0, 0, .55);
+  transition:
+    transform var(--dur) var(--ease) var(--atraso),
+    visibility 0s linear 0s;
+}
+
+/* Página já virada: gira 180° para a esquerda e some depois da animação */
+.pagina.virada {
+  transform: rotateY(-180deg);
+  visibility: hidden;
+  transition:
+    transform var(--dur) var(--ease) var(--atraso),
+    visibility 0s linear calc(var(--dur) + var(--atraso));
+}
+
+/* Enquanto o dedo/mouse arrasta a página, o JS controla o ângulo */
+.pagina.arrastando {
+  transition: none;
+  visibility: visible;
+}
+
+/* Lombada do livro (sombra suave na borda esquerda) */
+.pagina::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: clamp(10px, 2.6vw, 30px);
+  background: linear-gradient(90deg, rgba(0, 0, 0, .5), transparent);
+  z-index: 6;
+  pointer-events: none;
+}
+
+/* Sombra que escurece a página conforme ela vira */
+.pagina__sombra {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(270deg, rgba(0, 0, 0, .7), rgba(0, 0, 0, .15));
+  transition: opacity var(--dur) var(--ease) var(--atraso);
+}
+.pagina.virada .pagina__sombra { opacity: 1; }
+.pagina.arrastando .pagina__sombra { transition: none; }
+
+/* ---------- 4. FUNDO E OVERLAY ---------- */
+.pagina__midia { position: absolute; inset: 0; z-index: 0; }
+
+.pagina__foto,
+.capa__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--pos, 50% 50%);
+}
+
+.pagina__foto { transform: scale(1.02); }
+/* Zoom lento (efeito "Ken Burns") na página ativa */
+.pagina.ativa .pagina__foto { animation: zoomLento 22s ease-out both; }
+
+.capa__video {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.capa__video.pronto { opacity: 1; }
+
+/* Camada escura para dar legibilidade ao texto */
+.pagina__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg,
+    rgba(var(--noite-rgb), .62) 0%,
+    rgba(var(--noite-rgb), .45) 40%,
+    rgba(var(--noite-rgb), .62) 72%,
+    rgba(var(--noite-rgb), .82) 100%);
+}
+/* Capa: leve no topo, para o vídeo aparecer; escura embaixo, onde fica o texto */
+.pagina--capa .pagina__overlay {
+  background: linear-gradient(180deg,
+    rgba(var(--noite-rgb), .35) 0%,
+    rgba(var(--noite-rgb), .18) 35%,
+    rgba(var(--noite-rgb), .62) 62%,
+    rgba(var(--noite-rgb), .88) 100%);
+}
+/* Texto no topo, casal embaixo: escurece o topo */
+.pagina--topo .pagina__overlay {
+  background: linear-gradient(180deg,
+    rgba(var(--noite-rgb), .82) 0%,
+    rgba(var(--noite-rgb), .62) 38%,
+    rgba(var(--noite-rgb), .18) 70%,
+    rgba(var(--noite-rgb), .5) 100%);
+}
+/* Texto embaixo, casal em cima: escurece a base */
+.pagina--base .pagina__overlay {
+  background: linear-gradient(180deg,
+    rgba(var(--noite-rgb), .3) 0%,
+    rgba(var(--noite-rgb), .28) 34%,
+    rgba(var(--noite-rgb), .78) 62%,
+    rgba(var(--noite-rgb), .92) 100%);
+}
+
+/* Contêiner do conteúdo: centraliza e ainda rola se a tela for muito baixa */
+.pagina__conteudo {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  padding:
+    max(env(safe-area-inset-top), 24px)
+    24px
+    calc(108px + env(safe-area-inset-bottom));
+  padding-top: calc(max(env(safe-area-inset-top), 16px) + 48px);   /* libera o botão de música */
+  overflow-y: auto;
+  scrollbar-width: none;
+  text-align: center;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .45);
+}
+.pagina__conteudo::-webkit-scrollbar { display: none; }
+
+.bloco {
+  margin: auto;                    /* centraliza sem cortar o topo quando há scroll */
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(.7rem, 2.3vh, 1.6rem);
+}
+.pagina--topo .bloco { margin-top: clamp(1rem, 4.5vh, 3rem); margin-bottom: auto; }
+.pagina--base .bloco,
+.pagina--capa .bloco { margin-top: auto; margin-bottom: 0; }   /* texto no terço inferior: rostos ficam livres */
+
+/* Rodapé de cada página (botão "puxe aqui" etc.) */
+.pagina__rodape {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: calc(46px + env(safe-area-inset-bottom));
+  z-index: 4;
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- 5. TIPOGRAFIA E COMPONENTES ---------- */
+.sobretitulo {
+  margin: 0;
+  font: 400 clamp(.74rem, 3.1vw, 1rem)/1.9 var(--sans);
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: var(--ouro-claro);
+}
+
+.titulo {
+  margin: 0;
+  font: 300 clamp(2rem, 10vw, 3.4rem)/1.1 var(--serif);
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--marfim);
+  padding-left: .26em;             /* compensa o espaçamento à direita do último caractere */
+}
+.titulo--menor { font-size: clamp(1.6rem, 8vw, 2.6rem); letter-spacing: .2em; }
+
+.convite {
+  margin: 0;
+  font: italic 300 clamp(1.05rem, 4.4vw, 1.4rem)/1.5 var(--serif);
+  color: var(--marfim);
+  opacity: .92;
+}
+
+/* Nomes dos noivos (script romântico) */
+.nomes {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font: 400 clamp(3.3rem, 17vw, 6.4rem)/1 var(--script);
+  color: var(--marfim);
+  text-shadow: 0 4px 28px rgba(0, 0, 0, .55);
+  font-synthesis: none;
+}
+.nomes--grande { font-size: clamp(3.9rem, 21vw, 7.6rem); }
+.nomes--medio  { font-size: clamp(2.7rem, 13vw, 4.6rem); }
+.nomes .nome-e {
+  font: italic 300 .34em/1.5 var(--serif);
+  color: var(--ouro);
+  letter-spacing: .1em;
+}
+.assinatura {
+  margin: 0;
+  font: italic 300 clamp(1.15rem, 5vw, 1.6rem)/1.4 var(--serif);
+  color: var(--ouro-claro);
+  letter-spacing: .06em;
+}
+
+/* Ornamento: filete dourado com losango */
+.ornamento {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  width: min(230px, 62%);
+}
+.ornamento::before,
+.ornamento::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ouro));
+}
+.ornamento::after { transform: scaleX(-1); }
+.ornamento span {
+  width: 7px; height: 7px;
+  border: 1px solid var(--ouro);
+  transform: rotate(45deg);
+}
+
+/* Botão "Toque para abrir" / "Puxe aqui" */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .8rem;
+  padding: .85rem 1.5rem;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(241, 227, 191, .55);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font: 400 .76rem/1 var(--sans);
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--marfim);
+  transition: background .3s, color .3s, border-color .3s;
+}
+.cta--discreta { background: transparent; border-color: rgba(241, 227, 191, .3); font-size: .7rem; }
+.cta:hover { background: var(--ouro); border-color: var(--ouro); color: var(--noite); }
+.cta__seta {
+  width: 18px; height: 18px;
+  fill: none; stroke: currentColor; stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round;
+  animation: puxar 1.8s ease-in-out infinite;
+}
+
+/* Pais */
+.pais {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(.8rem, 4vw, 1.8rem);
+  width: 100%;
+}
+.pais__col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .55rem; }
+.pais__rotulo {
+  font: 400 .66rem/1.4 var(--sans);
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--ouro);
+}
+.pais__nomes { display: flex; flex-direction: column; gap: .1rem; }
+.pais__nomes span { font: 400 clamp(1.1rem, 4.8vw, 1.45rem)/1.35 var(--serif); }
+.pais__divisor { width: 1px; background: linear-gradient(180deg, transparent, var(--ouro), transparent); }
+
+/* Data e local */
+.quando, .onde { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+.quando p, .onde p { margin: 0; }
+.quando__data {
+  font: 400 clamp(1.15rem, 5vw, 1.9rem)/1.2 var(--serif);
+  letter-spacing: .12em;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: var(--ouro-claro);
+  font-variant-numeric: lining-nums;
+}
+.quando__hora {
+  font: 400 clamp(.85rem, 3.6vw, 1rem)/1.6 var(--sans);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+.onde__local { font: 500 clamp(1.25rem, 5.4vw, 1.65rem)/1.3 var(--serif); }
+.onde__endereco {
+  font: 300 clamp(.85rem, 3.6vw, 1rem)/1.5 var(--sans);
+  opacity: .85;
+}
+
+/* Aviso de chegada (página 3) */
+.chegada {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  max-width: 21rem;
+  padding: .7rem 1.1rem;
+  border: 1px solid rgba(220, 196, 143, .4);
+  border-radius: 14px;
+  background: rgba(var(--noite-rgb), .28);
+  font: italic 400 clamp(.95rem, 4vw, 1.1rem)/1.4 var(--serif);
+  color: var(--ouro-claro);
+  text-align: left;
+}
+.chegada svg {
+  flex: none;
+  width: 20px;
+  fill: none; stroke: currentColor; stroke-width: 1.4;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* ---------- 6. PÁGINAS ESPECÍFICAS ---------- */
+
+/* Página 2 — data em destaque */
+.data { display: flex; flex-direction: column; align-items: center; gap: .6rem; }
+.data__dia {
+  font: 300 clamp(6rem, 34vw, 11rem)/.85 var(--serif);
+  color: var(--ouro-claro);
+  font-variant-numeric: lining-nums;
+  text-shadow: 0 6px 34px rgba(0, 0, 0, .5);
+}
+.data__resto {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  font: 400 clamp(.95rem, 4.4vw, 1.4rem)/1 var(--sans);
+  letter-spacing: .36em;
+  text-transform: uppercase;
+  font-variant-numeric: lining-nums;
+}
+.data__resto i { font-style: normal; color: var(--ouro); }
+.data__resto::before,
+.data__resto::after {
+  content: "";
+  width: clamp(18px, 7vw, 40px);
+  height: 1px;
+  background: var(--ouro);
+}
+
+/* Página 2 — contagem regressiva */
+.contagem { display: flex; flex-direction: column; align-items: center; margin-top: .4rem; }
+.contagem__itens { display: flex; align-items: stretch; }
+.contagem__item {
+  min-width: clamp(58px, 17vw, 80px);
+  padding: 0 .3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .45rem;
+}
+.contagem__item + .contagem__item { border-left: 1px solid rgba(220, 196, 143, .45); }
+.contagem__item b {
+  font: 400 clamp(1.9rem, 9vw, 2.7rem)/1 var(--serif);
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--ouro-claro);
+}
+.contagem__item span {
+  padding-left: .24em;                             /* compensa o espaçamento à direita da última letra */
+  font: 400 .6rem/1 var(--sans);
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+.contagem__fim { margin: 0; font: 400 clamp(2rem, 10vw, 3rem)/1.2 var(--script); color: var(--ouro-claro); }
+
+/* Página 4 — ícones */
+.icones {
+  display: flex;                                   /* sempre os 3 ícones na mesma linha */
+  justify-content: center;
+  gap: clamp(.4rem, 2vw, 1.6rem);
+  width: 100%;
+  margin-top: .4rem;
+}
+.icone {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 128px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .85rem;
+  text-decoration: none;
+}
+.icone__circulo {
+  position: relative;
+  width: min(100%, clamp(64px, 22vw, 92px));
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ouro-claro);
+  border: 1px solid rgba(220, 196, 143, .75);
+  background: rgba(255, 255, 255, .09);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .3);
+  transition: transform .35s var(--ease), background .35s, color .35s;
+}
+/* Anel pulsante convidando ao toque */
+.icone__circulo::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid var(--ouro);
+  animation: pulso 2.6s ease-out infinite;
+  animation-delay: calc(var(--p, 0) * .5s);
+  pointer-events: none;
+}
+.icone svg {
+  width: 38%;
+  fill: none; stroke: currentColor; stroke-width: 1.3;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.icone__rotulo {
+  font: 400 clamp(.62rem, 2.7vw, .82rem)/1.5 var(--sans);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.icone:hover .icone__circulo,
+.icone:focus-visible .icone__circulo {
+  transform: translateY(-5px) scale(1.06);
+  background: var(--ouro);
+  color: var(--noite);
+}
+.icone:active .icone__circulo { transform: scale(.94); }
+
+/* Página 5 — encerramento */
+.fecho {
+  margin: 0;
+  font: 400 clamp(2.8rem, 14vw, 4.8rem)/1.1 var(--script);
+  color: var(--marfim);
+}
+.poema {
+  margin: 0;
+  font: italic 300 clamp(1.1rem, 4.8vw, 1.5rem)/1.6 var(--serif);
+  opacity: .92;
+}
+.coracao { width: clamp(56px, 16vw, 78px); display: block; overflow: visible; }
+.coracao path {
+  fill: rgba(220, 196, 143, 0);
+  stroke: var(--ouro);
+  stroke-width: .8;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.flutuantes { position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; }
+.flutuante {
+  position: absolute;
+  bottom: -40px;
+  left: var(--x);
+  width: var(--s);
+  opacity: 0;
+  color: var(--ouro-claro);
+}
+.flutuante svg { display: block; width: 100%; fill: currentColor; }
+
+/* ---------- 7. CONTROLES ---------- */
+.pontos {
+  position: fixed;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  gap: 10px;
+}
+.ponto {
+  position: relative;
+  width: 8px; height: 8px;
+  padding: 0;
+  border: 1px solid var(--ouro-claro);
+  border-radius: 8px;
+  background: transparent;
+  transition: width .45s var(--ease), background .45s;
+}
+.ponto::after { content: ""; position: absolute; inset: -12px -5px; }  /* área de toque maior */
+.ponto.ativo { width: 26px; background: var(--ouro); border-color: var(--ouro); }
+
+.musica {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  z-index: 50;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(241, 227, 191, .5);
+  background: rgba(var(--noite-rgb), .35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--ouro-claro);
+  transition: background .3s, color .3s;
+}
+.musica svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.musica__risco { transition: opacity .3s; }
+.musica.tocando .musica__risco { opacity: 0; }
+.musica.tocando::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid var(--ouro);
+  animation: pulso 2.4s ease-out infinite;
+}
+.musica:hover { background: var(--ouro); color: var(--noite); }
+
+/* Setas laterais: só aparecem em telas largas com mouse */
+.seta { display: none; }
+@media (hover: hover) and (pointer: fine) and (min-width: 760px) {
+  .seta {
+    position: fixed;
+    top: 50%;
+    z-index: 50;
+    width: 52px; height: 52px;
+    margin-top: -26px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(241, 227, 191, .45);
+    background: rgba(var(--noite-rgb), .35);
+    backdrop-filter: blur(8px);
+    color: var(--ouro-claro);
+    transition: background .3s, color .3s;
+  }
+  .seta[hidden] { display: none; }
+  .seta--ant  { left: 20px; }
+  .seta--prox { right: 20px; }
+  .seta svg { width: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .seta:hover { background: var(--ouro); color: var(--noite); }
+}
+
+.aviso {
+  position: fixed;
+  left: 50%;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 12px);
+  z-index: 60;
+  max-width: calc(100vw - 40px);
+  padding: .7rem 1.2rem;
+  border-radius: 999px;
+  background: rgba(var(--noite-rgb), .88);
+  border: 1px solid rgba(220, 196, 143, .5);
+  font: 400 .8rem/1.4 var(--sans);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s, transform .35s;
+}
+.aviso.visivel { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- 8. ANIMAÇÕES ---------- */
+/* Todo elemento .anima começa invisível e sobe suavemente quando a página fica ativa.
+   O atraso escalonado vem da variável --i, definida automaticamente pelo JS. */
+.anima { opacity: 0; transform: translateY(20px); }
+.pagina.ativa .anima {
+  animation: subir 1.1s cubic-bezier(.2, .7, .2, 1) both;
+  animation-delay: calc(.4s + var(--i, 0) * .17s);
+}
+
+.pagina.ativa .coracao path {
+  animation:
+    tracar 2.4s ease forwards .9s,
+    preencher 1.4s ease forwards 2.8s;
+}
+.pagina.ativa .coracao { animation: bater 1.7s ease-in-out infinite 4s; }
+.pagina.ativa .flutuante { animation: flutuar var(--t) linear infinite var(--a); }
+
+@keyframes subir      { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+@keyframes zoomLento  { from { transform: scale(1.02); } to { transform: scale(1.12); } }
+@keyframes puxar      { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-7px); } }
+@keyframes pulso      { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.5); opacity: 0; } }
+@keyframes tracar     { to { stroke-dashoffset: 0; } }
+@keyframes preencher  { to { fill: rgba(220, 196, 143, .85); } }
+@keyframes bater      { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.12); } 30% { transform: scale(1); } 45% { transform: scale(1.08); } }
+@keyframes flutuar {
+  0%   { transform: translate(0, 0) scale(.6); opacity: 0; }
+  12%  { opacity: .75; }
+  100% { transform: translate(var(--dx), -105vh) scale(1.1) rotate(25deg); opacity: 0; }
+}
+
+/* ---------- 9. RESPONSIVO E ACESSIBILIDADE ---------- */
+
+/* Celulares de tela curta (ex.: iPhone SE): compacta a página da cerimônia, que tem mais texto */
+@media (max-height: 720px) {
+  .bloco { gap: .65rem; }
+  .nomes--medio { font-size: clamp(2.4rem, 11vw, 3.6rem); }
+  .quando__data { font-size: clamp(1.1rem, 4.8vw, 1.6rem); }
+  .chegada { padding: .5rem .9rem; }
+}
+
+/* Celular deitado / telas bem baixas */
+@media (max-height: 520px) {
+  .pagina__conteudo { padding-bottom: 96px; }
+  .pagina--topo .bloco { margin-top: auto; }
+  .bloco { gap: .55rem; }
+  .data__dia { font-size: clamp(3.5rem, 22vh, 6rem); }
+  .nomes--grande { font-size: clamp(3rem, 20vh, 5rem); }
+}
+
+/* Telas largas (desktop): o texto ganha um pouco mais de respiro */
+@media (min-width: 900px) {
+  .bloco { max-width: 640px; }
+  .icones { gap: 2.4rem; }
+}
+
+/* Quem prefere menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: .01s; }
+  .pagina.ativa .pagina__foto,
+  .cta__seta,
+  .icone__circulo::after,
+  .pagina.ativa .coracao,
+  .pagina.ativa .flutuante { animation: none; }
+  .flutuantes { display: none; }
+  .pagina.ativa .anima { animation-duration: .01s; animation-delay: 0s; }
+  .pagina.ativa .coracao path { animation: none; stroke-dashoffset: 0; fill: rgba(220, 196, 143, .85); }
+}
