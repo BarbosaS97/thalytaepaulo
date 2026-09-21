@@ -6,7 +6,8 @@
    3. Motor do livro (virar página, arrastar, teclado, roda do mouse)
    4. Vídeo da capa
    5. Música de fundo
-   6. Corações flutuantes e inicialização
+   6. Confirmação de presença (janela + agradecimento)
+   7. Corações flutuantes e inicialização
    ===================================================================== */
 
 "use strict";
@@ -21,33 +22,48 @@ const CONFIG = {
   hora: "16h00",                       // horário de início (ex.: "16h00" ou "16:30")
   antecedenciaMin: 30,                 // "chegar com X minutos de antecedência" (use 0 para ocultar o aviso)
   fusoHorario: "-03:00",               // Brasília; a contagem fica certa mesmo para quem está em outro fuso
-  local: "Nome do Local",
-  endereco: "Rua Exemplo, 000 — Cidade/UF",   // deixe "" para ocultar
+  local: "CENTREJUFE",
+  localDescricao: "Centro de Treinamento da Justiça Federal",   // deixe "" para ocultar
+  endereco: [                          // uma linha por item; use [] para ocultar
+    "St. de Clubes Esportivos Sul Trecho 2",
+    "Plano Piloto, Brasília - DF",
+    "CEP 70297-400"
+  ],
   paisNoiva: ["Etelvina", "Valter"],
   paisNoivo: ["Ana Paula", "Valdenir"],
 
-  // ---- Links dos ícones da página 4 ----
-  linkMapa: "https://maps.app.goo.gl/fzCWdRTDXXGtgAvj6",
-  linkPresentes: "#",                  // lista de presentes ou link do PIX
-  // WhatsApp: "https://wa.me/55DDDNUMERO?text=Ol%C3%A1!%20Confirmo%20minha%20presen%C3%A7a"
-  linkConfirmacao: "#",
+  // ---- WhatsApp dos noivos (aparecem em "Tem alguma dúvida?") ----
+  contatos: [
+    { nome: "Thalyta", whatsapp: "+55 61 9223-3654" },
+    { nome: "Paulo",   whatsapp: "+55 61 9400-8042" }
+  ],
+  mensagemDuvida: "Olá! Tenho uma dúvida sobre o casamento.",
+
+  // ---- Confirmação de presença (botão grande da última página) ----
+  // As confirmações são gravadas no Supabase (js/api.js) e aparecem no painel privado dos noivos.
+  // Se o banco estiver fora do ar, a janela oferece confirmar pelo WhatsApp deste contato:
+  confirmarCom: "Thalyta",
+  mensagemConfirmacao: "Olá! Confirmo minha presença no casamento de Thalyta e Paulo. Meu nome é ",
+
+  // ---- Botão "Saiba como chegar" (página 4) ----
+  linkMapa: "https://maps.app.goo.gl/fzCWdRTDXXGtgAvj6",   // CENTREJUFE no Google Maps
 
   // ---- Arquivos (pasta /midias/) ----
   videoCapa: "midias/video.mp4",       // vídeo de fundo da capa (mudo, em loop)
-  posterCapa: "midias/capa.jpg",       // foto exibida enquanto o vídeo carrega (ou se ele não existir)
+  posterCapa: "midias/capa-video.jpg", // quadro exibido enquanto o vídeo carrega (ou se ele não existir)
   fotosPaginas: [                      // fundos das páginas 2, 3, 4 e 5 (nessa ordem)
-    "midias/foto1.jpg",
-    "midias/foto2.jpg",
-    "midias/foto3.jpg",
-    "midias/foto4.jpg"
+    "midias/foto2.jpg",                //   2 — convite (pais e nomes)
+    "midias/foto1.jpg",                //   3 — save the date
+    "midias/foto4.jpg",                //   4 — cerimônia (endereço)
+    "midias/foto3.jpg"                 //   5 — confirmação de presença
   ],
-  // Ponto de foco de cada foto (evita cortar rostos em telas largas). Formato CSS: "x% y%"
-  posicaoCapa: "50% 35%",
-  posicaoFotos: ["50% 80%", "50% 55%", "50% 62%", "50% 32%"],
+  // Ponto de foco de cada foto/vídeo (evita cortar rostos em telas largas). Formato CSS: "x% y%"
+  posicaoCapa: "47% 50%",              // vale para o vídeo e para o quadro de reserva
+  posicaoFotos: ["50% 55%", "50% 80%", "50% 32%", "50% 62%"],
 
   // ---- Música ----
   musica: "midias/musica.mp3",
-  musicaAutoplay: true,                // toca no primeiro toque do convidado (navegadores exigem um toque)
+  musicaAutoplay: true,                // começa já na capa (ver nota em "5. Música de fundo")
   volumeMusica: 0.5                    // 0 a 1
 };
 
@@ -114,6 +130,7 @@ function montarValores() {
     diaHora: [d.semana, CONFIG.hora && `às ${CONFIG.hora}`].filter(Boolean).join(", "),
     chegada: textoChegada(),
     local: CONFIG.local,
+    localDescricao: CONFIG.localDescricao,
     endereco: CONFIG.endereco,
     paisNoiva: CONFIG.paisNoiva,
     paisNoivo: CONFIG.paisNoivo
@@ -170,9 +187,43 @@ function preencherTextos() {
   document.title = `${CONFIG.nomes.replace(/\s+e\s+/i, " & ")} — Convite de Casamento`;
 }
 
-/** Liga cada ícone da página 4 ao seu link. Se ainda for "#", mostra um aviso em vez de navegar. */
+/** "+55 61 9223-3654" + texto → https://wa.me/556192233654?text=... */
+function linkWhatsApp(numero, texto) {
+  const digitos = String(numero).replace(/\D/g, "");
+  return `https://wa.me/${digitos}` + (texto ? `?text=${encodeURIComponent(texto)}` : "");
+}
+
+/** Contato que recebe as confirmações (CONFIG.confirmarCom); se não achar, o primeiro da lista. */
+function contatoDeConfirmacao() {
+  const nome = String(CONFIG.confirmarCom || "").trim().toLowerCase();
+  return CONFIG.contatos.find(c => c.nome.toLowerCase() === nome) || CONFIG.contatos[0];
+}
+
+/** Cria os botões de WhatsApp de "Tem alguma dúvida?" (um por contato do CONFIG). */
+function montarContatos() {
+  const caixa = document.querySelector("[data-contatos]");
+  if (!caixa) return;
+  const svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.6a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.5-4.3a8.5 8.5 0 1 1 15.5-4.6z"/><path d="M9.2 8.6c.2 2.4 2.3 4.7 5.3 5.8l1.3-1.3-1.9-1-.9.8a4.6 4.6 0 0 1-2-2l.8-.9-1-1.9-1.6.5z"/></svg>';
+  CONFIG.contatos.forEach(c => {
+    const a = document.createElement("a");
+    a.className = "contato";
+    a.href = linkWhatsApp(c.whatsapp, CONFIG.mensagemDuvida);
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.setAttribute("aria-label", `Chamar ${c.nome} no WhatsApp`);
+    a.innerHTML = svg;                                // ícone fixo, sem dados de terceiros
+    const nome = document.createElement("span");
+    nome.textContent = c.nome;
+    a.appendChild(nome);
+    caixa.appendChild(a);
+  });
+  const bloco = caixa.closest(".duvidas");
+  if (bloco && !CONFIG.contatos.length) bloco.hidden = true;
+}
+
+/** Liga o botão "Saiba como chegar" ao mapa. Se o link for "#", mostra um aviso em vez de navegar. */
 function configurarLinks() {
-  const mapa = { mapa: CONFIG.linkMapa, presentes: CONFIG.linkPresentes, confirmacao: CONFIG.linkConfirmacao };
+  const mapa = { mapa: CONFIG.linkMapa };
   document.querySelectorAll("a[data-link]").forEach(a => {
     const url = mapa[a.dataset.link];
     if (url && url !== "#") {
@@ -188,7 +239,7 @@ function configurarLinks() {
   });
 }
 
-/** Contagem regressiva (página 2): atualiza a cada segundo; no grande dia mostra uma mensagem. */
+/** Contagem regressiva (página 3): atualiza a cada segundo; no grande dia mostra uma mensagem. */
 function iniciarContagem() {
   const caixa = document.querySelector(".contagem");
   if (!caixa) return;
@@ -332,6 +383,7 @@ livro.addEventListener("click", e => {
   if (alvo) {
     if (alvo.dataset.acao === "proxima") proxima();
     if (alvo.dataset.acao === "inicio") irPara(0);
+    if (alvo.dataset.acao === "confirmar") abrirConfirmacao();
     return;
   }
   // Na capa, tocar em qualquer lugar abre o livro
@@ -341,6 +393,8 @@ livro.addEventListener("click", e => {
 /* ---- Teclado ---- */
 document.addEventListener("keydown", e => {
   if (e.altKey || e.ctrlKey || e.metaKey) return;
+  if (document.querySelector("dialog[open]")) return;            // janela de confirmação aberta: teclas são dela
+  if (e.target.closest && e.target.closest("input, textarea")) return;
   switch (e.key) {
     case "ArrowRight": case "ArrowDown": case "PageDown": proxima(); break;
     case "ArrowLeft":  case "ArrowUp":   case "PageUp":   anterior(); break;
@@ -362,12 +416,18 @@ livro.addEventListener("wheel", e => {
   const agora = Date.now();
   if (Math.abs(delta) < 25 || agora - ultimaRoda < 1200) return;
   ultimaRoda = agora;
+  // Rolar não é um "gesto" que libera o som no navegador. Na capa, pedimos um clique/toque,
+  // que abre o convite E liga a música ao mesmo tempo.
+  if (atual === 0 && delta > 0 && somBloqueado()) {
+    mostrarAviso("Clique ou toque na capa para abrir o convite");
+    return;
+  }
   irPara(atual + (delta > 0 ? 1 : -1));
 }, { passive: true });
 
 /* ---- Arrastar (dedo ou mouse): a página acompanha o gesto ---- */
 let arrasto = null;          // estado do gesto em andamento
-let bloquearClique = false;  // evita "clicar" em um ícone logo após um arrasto
+let bloquearClique = false;  // evita "clicar" em um botão logo após um arrasto
 
 function progressoDoArrasto(dx) {
   const largura = window.innerWidth * 0.85;
@@ -451,6 +511,7 @@ function iniciarVideo() {
   video.muted = true;                                // necessário para o autoplay funcionar
   video.defaultMuted = true;
   video.setAttribute("playsinline", "");
+  video.style.setProperty("--pos", CONFIG.posicaoCapa);   // mesmo enquadramento do quadro de reserva
   // O vídeo só aparece (fade) quando começa a tocar; até lá (ou se falhar) fica a foto de reserva
   video.addEventListener("playing", () => video.classList.add("pronto"));
   video.addEventListener("error", () => video.classList.remove("pronto"));
@@ -477,6 +538,11 @@ const audio     = document.getElementById("audio");
 const btnMusica = document.getElementById("btnMusica");
 let escolhaManual = false;   // true se o convidado já mexeu no botão (aí não forçamos o autoplay)
 
+/** A música deveria estar tocando, mas o navegador ainda está segurando o som (falta o 1º gesto)? */
+function somBloqueado() {
+  return CONFIG.musicaAutoplay && !!CONFIG.musica && !escolhaManual && !btnMusica.hidden && audio.paused;
+}
+
 function iniciarMusica() {
   if (!CONFIG.musica) return;
   audio.src = CONFIG.musica;
@@ -487,8 +553,11 @@ function iniciarMusica() {
   const sincronizar = () => {
     const tocando = !audio.paused;
     btnMusica.classList.toggle("tocando", tocando);
+    // Enquanto o navegador segura o som, o botão pulsa convidando ao toque
+    btnMusica.classList.toggle("convida", !tocando && !escolhaManual);
     btnMusica.setAttribute("aria-pressed", String(tocando));
     btnMusica.setAttribute("aria-label", tocando ? "Pausar música" : "Tocar música");
+    btnMusica.title = tocando ? "Desativar a música" : "Ativar a música";
   };
   audio.addEventListener("play", sincronizar);
   audio.addEventListener("pause", sincronizar);
@@ -497,29 +566,152 @@ function iniciarMusica() {
     escolhaManual = true;
     if (audio.paused) audio.play().catch(() => mostrarAviso("Não foi possível tocar a música."));
     else audio.pause();
+    sincronizar();
   });
 
   if (CONFIG.musicaAutoplay) {
-    // Navegadores só liberam áudio depois de um gesto do usuário: usamos o primeiro toque/tecla
-    const eventos = ["pointerup", "click", "keydown"];
-    const tentar = e => {
+    /* A música começa já na capa. Os navegadores só liberam som depois de um gesto do
+       convidado, então: (1) tentamos tocar assim que a página abre — funciona quando o
+       navegador permite — e (2) se for bloqueado, o PRIMEIRO gesto de qualquer tipo na
+       capa (toque, clique, arrasto ou tecla) já dispara a música, antes mesmo de a
+       página virar. Vários eventos são ouvidos porque cada navegador/aparelho considera
+       um deles como "gesto válido" (ex.: no celular só vale ao soltar o dedo). */
+    const eventos = ["pointerdown", "pointerup", "touchend", "click", "keydown"];
+    const limpar = () => eventos.forEach(ev => document.removeEventListener(ev, tentar, true));
+    const tocar = () => audio.play().then(limpar).catch(() => { /* aguarda o próximo gesto */ });
+    function tentar(e) {
       if (escolhaManual || !audio.paused) return limpar();
-      if (e.target.closest && e.target.closest("#btnMusica")) return;
-      audio.play().then(limpar).catch(() => { /* tenta no próximo gesto */ });
-    };
-    const limpar = () => eventos.forEach(ev => document.removeEventListener(ev, tentar));
-    eventos.forEach(ev => document.addEventListener(ev, tentar));
+      if (e.target.closest && e.target.closest("#btnMusica")) return;   // o botão cuida de si
+      tocar();
+    }
+    eventos.forEach(ev => document.addEventListener(ev, tentar, true));   // captura: roda antes de qualquer outro tratamento
+    tocar();
   }
+  sincronizar();
 }
 
 
 /* ---------------------------------------------------------------------
-   6. CORAÇÕES FLUTUANTES E INICIALIZAÇÃO
+   6. CONFIRMAÇÃO DE PRESENÇA (janela + agradecimento)
    --------------------------------------------------------------------- */
-function criarCoracoes() {
-  const caixa = document.querySelector(".flutuantes");
+const modal        = document.getElementById("modalConfirmar");
+const formConfirma = document.getElementById("formConfirmar");
+const etapaObrigado = document.getElementById("modalObrigado");
+const erroConfirma = modal.querySelector(".modal__erro");
+const btnEnviar    = modal.querySelector(".modal__enviar");
+const campoNome    = formConfirma.elements.nome;
+const campoTel     = formConfirma.elements.telefone;
+
+/** "61900001111" → "(61) 90000-1111" (aceita fixo de 10 dígitos e celular de 11). */
+function formatarTelefone(valor) {
+  const d = String(valor).replace(/\D/g, "").slice(0, 11);
+  if (d.length > 10) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length > 6)  return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  if (d.length > 2)  return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return d ? `(${d}` : "";
+}
+
+/** "maria da silva" / "MARIA DA SILVA" → "Maria da Silva". Nomes já bem escritos ficam como estão. */
+function arrumarNome(nome) {
+  if (nome !== nome.toLocaleLowerCase("pt-BR") && nome !== nome.toLocaleUpperCase("pt-BR")) return nome;
+  const particulas = new Set(["da", "de", "do", "das", "dos", "e"]);
+  return nome.toLocaleLowerCase("pt-BR").split(" ").map((p, i) =>
+    i > 0 && particulas.has(p) ? p : p.charAt(0).toLocaleUpperCase("pt-BR") + p.slice(1)
+  ).join(" ");
+}
+
+/** "MARIA da Silva" → "Maria" (primeiro nome, para o agradecimento). */
+function primeiroNome(nome) {
+  const p = nome.trim().split(/\s+/)[0] || "";
+  return p.charAt(0).toLocaleUpperCase("pt-BR") + p.slice(1).toLocaleLowerCase("pt-BR");
+}
+
+/** "Sábado, 07 de novembro de 2026 · 16h00" */
+function dataPorExtenso() {
+  const d = interpretarData(CONFIG.data);
+  if (!d.n) return "";
+  return `${d.semana}, ${d.dia} de ${d.mes.toLowerCase()} de ${d.ano}` + (CONFIG.hora ? ` · ${CONFIG.hora}` : "");
+}
+
+function mostrarErroConfirma(html) {
+  erroConfirma.innerHTML = html;                       // só montamos HTML fixo (o link do WhatsApp é gerado por nós)
+  erroConfirma.hidden = !html;
+}
+
+/** Mensagem de erro amigável + saída pelo WhatsApp caso o banco não responda. */
+function erroDeConexao() {
+  const c = contatoDeConfirmacao();
+  const zap = c ? ` Se preferir, <a href="${linkWhatsApp(c.whatsapp, CONFIG.mensagemConfirmacao)}" target="_blank" rel="noopener noreferrer">confirme pelo WhatsApp</a>.` : "";
+  return "Não conseguimos registrar sua confirmação agora. Tente novamente em instantes." + zap;
+}
+
+function mostrarEtapa(obrigado) {
+  formConfirma.hidden = obrigado;
+  etapaObrigado.hidden = !obrigado;
+  etapaObrigado.classList.toggle("ativo", obrigado);   // dispara as animações do agradecimento
+}
+
+function abrirConfirmacao() {
+  if (typeof modal.showModal !== "function") {         // navegador muito antigo: cai no WhatsApp
+    const c = contatoDeConfirmacao();
+    if (c) window.open(linkWhatsApp(c.whatsapp, CONFIG.mensagemConfirmacao), "_blank", "noopener");
+    return;
+  }
+  mostrarEtapa(false);
+  mostrarErroConfirma("");
+  modal.showModal();
+}
+
+modal.addEventListener("close", () => {                // limpa tudo para a próxima pessoa (ex.: família no mesmo celular)
+  formConfirma.reset();
+  mostrarEtapa(false);
+  mostrarErroConfirma("");
+  btnEnviar.disabled = false;
+});
+modal.addEventListener("click", e => {                 // clicar fora do cartão fecha
+  if (e.target === modal || e.target.closest("[data-fechar]")) modal.close();
+});
+campoTel.addEventListener("input", () => { campoTel.value = formatarTelefone(campoTel.value); });
+
+formConfirma.addEventListener("submit", async e => {
+  e.preventDefault();
+  const nome = arrumarNome(campoNome.value.trim().replace(/\s+/g, " "));
+  const tel = campoTel.value.trim();
+  const digitos = tel.replace(/\D/g, "");
+
+  if (nome.length < 2) {
+    mostrarErroConfirma("Por favor, digite seu nome.");
+    return campoNome.focus();
+  }
+  if (tel && (digitos.length < 10 || digitos.length > 11)) {
+    mostrarErroConfirma("Telefone incompleto. Use o DDD + número, ou deixe em branco.");
+    return campoTel.focus();
+  }
+
+  mostrarErroConfirma("");
+  btnEnviar.disabled = true;                           // evita confirmar duas vezes com toques repetidos
+  btnEnviar.querySelector("span").textContent = "Enviando…";
+  try {
+    await Api.confirmar(nome, tel);
+    modal.querySelector("[data-obrigado-nome]").textContent = primeiroNome(nome);
+    modal.querySelector("[data-obrigado-data]").textContent = dataPorExtenso();
+    mostrarEtapa(true);
+  } catch (err) {
+    console.error("Falha ao confirmar presença:", err);
+    mostrarErroConfirma(err.codigo === "nome_invalido" ? "Por favor, digite seu nome." : erroDeConexao());
+  } finally {
+    btnEnviar.disabled = false;
+    btnEnviar.querySelector("span").textContent = "Confirmar";
+  }
+});
+
+
+/* ---------------------------------------------------------------------
+   7. CORAÇÕES FLUTUANTES E INICIALIZAÇÃO
+   --------------------------------------------------------------------- */
+function criarCoracoes(caixa, quantidade = 14) {
   const svg = '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < quantidade; i++) {
     const c = document.createElement("span");
     c.className = "flutuante";
     c.innerHTML = svg;                                // conteúdo fixo, sem dados de terceiros
@@ -535,10 +727,12 @@ function criarCoracoes() {
 function iniciar() {
   preencherTextos();
   iniciarContagem();
+  montarContatos();
   configurarLinks();
   prepararPaginas();
   prepararFotos();
-  criarCoracoes();
+  criarCoracoes(document.querySelector(".pagina--final .flutuantes"));
+  criarCoracoes(etapaObrigado.querySelector(".flutuantes"), 10);
 
   // Atalho: index.html#pagina-3 abre direto na página 3 (útil para testar cada página)
   const m = location.hash.match(/pagina-(\d+)/);

@@ -10,7 +10,7 @@
   <!-- Fontes: Cormorant Garamond (títulos), Jost (corpo), Pinyon Script (nomes) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -21,6 +21,8 @@
     Cada <section class="pagina"> é uma página em tela cheia.
     Os textos com data-cfg="..." e os links com data-link="..." são preenchidos
     automaticamente pelo js/script.js a partir do bloco CONFIG (não edite aqui).
+    O botão .dobra é a "ponta da página dobrada" no canto inferior direito.
+    As fotos vêm de CONFIG.fotosPaginas, na ordem das páginas 2, 3, 4 e 5 (data-foto="0" a "3").
   -->
   <main id="livro" class="livro">
 
@@ -42,18 +44,48 @@
         </div>
       </div>
 
-      <div class="pagina__rodape">
-        <button class="cta anima" type="button" data-acao="proxima">
-          <span>Toque para abrir</span>
-          <svg class="cta__seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-      </div>
+      <button class="dobra" type="button" data-acao="proxima" aria-label="Próxima página">
+        <span class="dobra__verso" aria-hidden="true"><span class="dobra__texto">Próxima página</span></span>
+      </button>
       <div class="pagina__sombra"></div>
     </section>
 
-    <!-- ============ PÁGINA 2 — SAVE THE DATE ============ -->
-    <section class="pagina pagina--topo" aria-label="Save the date">
+    <!-- ============ PÁGINA 2 — O CONVITE (pais e nomes) ============ -->
+    <section class="pagina pagina--centro" aria-label="Convite">
       <div class="pagina__midia"><img class="pagina__foto" data-foto="0" alt="" draggable="false" decoding="async"></div>
+      <div class="pagina__overlay"></div>
+
+      <div class="pagina__conteudo">
+        <div class="bloco">
+          <h2 class="sobretitulo anima">Com a bênção de seus pais</h2>
+
+          <div class="pais anima">
+            <div class="pais__col">
+              <span class="rotulo">Pais da noiva</span>
+              <div class="pais__nomes" data-cfg="paisNoiva"></div>
+            </div>
+            <div class="pais__divisor" aria-hidden="true"></div>
+            <div class="pais__col">
+              <span class="rotulo">Pais do noivo</span>
+              <div class="pais__nomes" data-cfg="paisNoivo"></div>
+            </div>
+          </div>
+
+          <div class="ornamento anima" aria-hidden="true"><span></span></div>
+          <p class="convite anima">convidam para a celebração<br>do casamento de</p>
+          <h3 class="nomes nomes--medio anima" data-cfg="nomes">Thalyta e Paulo</h3>
+        </div>
+      </div>
+
+      <button class="dobra" type="button" data-acao="proxima" aria-label="Próxima página">
+        <span class="dobra__verso" aria-hidden="true"><span class="dobra__texto">Próxima página</span></span>
+      </button>
+      <div class="pagina__sombra"></div>
+    </section>
+
+    <!-- ============ PÁGINA 3 — SAVE THE DATE ============ -->
+    <section class="pagina pagina--topo" aria-label="Save the date">
+      <div class="pagina__midia"><img class="pagina__foto" data-foto="1" alt="" draggable="false" decoding="async"></div>
       <div class="pagina__overlay"></div>
 
       <div class="pagina__conteudo">
@@ -78,110 +110,53 @@
         </div>
       </div>
 
-      <div class="pagina__rodape">
-        <button class="cta anima" type="button" data-acao="proxima">
-          <span>Puxe aqui</span>
-          <svg class="cta__seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-      </div>
+      <button class="dobra" type="button" data-acao="proxima" aria-label="Próxima página">
+        <span class="dobra__verso" aria-hidden="true"><span class="dobra__texto">Próxima página</span></span>
+      </button>
       <div class="pagina__sombra"></div>
     </section>
 
-    <!-- ============ PÁGINA 3 — CERIMÔNIA ============ -->
-    <section class="pagina" aria-label="Cerimônia">
-      <div class="pagina__midia"><img class="pagina__foto" data-foto="1" alt="" draggable="false" decoding="async"></div>
-      <div class="pagina__overlay"></div>
-
-      <div class="pagina__conteudo">
-        <div class="bloco">
-          <h2 class="sobretitulo anima">Com a bênção de seus pais</h2>
-
-          <div class="pais anima">
-            <div class="pais__col">
-              <span class="pais__rotulo">Pais da noiva</span>
-              <div class="pais__nomes" data-cfg="paisNoiva"></div>
-            </div>
-            <div class="pais__divisor" aria-hidden="true"></div>
-            <div class="pais__col">
-              <span class="pais__rotulo">Pais do noivo</span>
-              <div class="pais__nomes" data-cfg="paisNoivo"></div>
-            </div>
-          </div>
-
-          <p class="convite anima">convidam para a celebração<br>do casamento de</p>
-          <h3 class="nomes nomes--medio anima" data-cfg="nomes">Thalyta e Paulo</h3>
-          <div class="ornamento anima" aria-hidden="true"><span></span></div>
-
-          <div class="quando anima">
-            <p class="quando__data" data-cfg="dataBarras">07 | Novembro | 2026</p>
-            <p class="quando__hora" data-cfg="diaHora">Sábado, às 16h00</p>
-          </div>
-          <div class="onde anima">
-            <p class="onde__local" data-cfg="local">Nome do Local</p>
-            <p class="onde__endereco" data-cfg="endereco"></p>
-          </div>
-          <p class="chegada anima">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            <span data-cfg="chegada">Pedimos que chegue com 30 minutos de antecedência.</span>
-          </p>
-        </div>
-        </div>
-      </div>
-
-      <div class="pagina__rodape">
-        <button class="cta cta--discreta anima" type="button" data-acao="proxima">
-          <span>Virar página</span>
-          <svg class="cta__seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-      </div>
-      <div class="pagina__sombra"></div>
-    </section>
-
-    <!-- ============ PÁGINA 4 — INTERAÇÕES ============ -->
-    <section class="pagina pagina--topo" aria-label="Interações">
+    <!-- ============ PÁGINA 4 — CERIMÔNIA (quando e onde) ============ -->
+    <section class="pagina pagina--base pagina--cerimonia" aria-label="Cerimônia">
       <div class="pagina__midia"><img class="pagina__foto" data-foto="2" alt="" draggable="false" decoding="async"></div>
       <div class="pagina__overlay"></div>
 
       <div class="pagina__conteudo">
         <div class="bloco">
-          <h2 class="titulo titulo--menor anima">Toque nos ícones</h2>
-          <p class="convite anima">para interagir</p>
+          <div class="quando anima">
+            <span class="rotulo">Quando</span>
+            <p class="quando__data" data-cfg="dataBarras">07 | Novembro | 2026</p>
+            <p class="quando__hora" data-cfg="diaHora">Sábado, às 16h00</p>
+          </div>
+
           <div class="ornamento anima" aria-hidden="true"><span></span></div>
 
-          <div class="icones">
-            <a class="icone anima" data-link="mapa" href="#" style="--p:0">
-              <span class="icone__circulo">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-              </span>
-              <span class="icone__rotulo">Saiba como chegar</span>
-            </a>
-            <a class="icone anima" data-link="presentes" href="#" style="--p:1">
-              <span class="icone__circulo">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/><path d="M12 8c-1-3-5-4.5-5-2s3 2 5 2zM12 8c1-3 5-4.5 5-2s-3 2-5 2z"/></svg>
-              </span>
-              <span class="icone__rotulo">Para nos presentear</span>
-            </a>
-            <a class="icone anima" data-link="confirmacao" href="#" style="--p:2">
-              <span class="icone__circulo">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg>
-              </span>
-              <span class="icone__rotulo">Confirmar presença</span>
+          <div class="onde anima">
+            <span class="rotulo">Onde</span>
+            <p class="onde__local" data-cfg="local">Nome do Local</p>
+            <p class="onde__desc" data-cfg="localDescricao"></p>
+            <p class="onde__endereco" data-cfg="endereco"></p>
+            <a class="btn-mapa" data-link="mapa" href="#">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              <span>Saiba como chegar</span>
             </a>
           </div>
+
+          <p class="chegada anima">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span data-cfg="chegada">Pedimos que chegue com 30 minutos de antecedência.</span>
+          </p>
         </div>
       </div>
 
-      <div class="pagina__rodape">
-        <button class="cta cta--discreta anima" type="button" data-acao="proxima">
-          <span>Virar página</span>
-          <svg class="cta__seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-      </div>
+      <button class="dobra" type="button" data-acao="proxima" aria-label="Próxima página">
+        <span class="dobra__verso" aria-hidden="true"><span class="dobra__texto">Próxima página</span></span>
+      </button>
       <div class="pagina__sombra"></div>
     </section>
 
-    <!-- ============ PÁGINA 5 — ENCERRAMENTO ============ -->
-    <section class="pagina pagina--base" aria-label="Encerramento">
+    <!-- ============ PÁGINA 5 — ENCERRAMENTO E CONFIRMAÇÃO ============ -->
+    <section class="pagina pagina--topo pagina--final" aria-label="Encerramento e confirmação de presença">
       <div class="pagina__midia"><img class="pagina__foto" data-foto="3" alt="" draggable="false" decoding="async"></div>
       <div class="pagina__overlay"></div>
       <!-- Corações flutuantes (gerados pelo JS) -->
@@ -189,15 +164,22 @@
 
       <div class="pagina__conteudo">
         <div class="bloco">
-          <div class="anima">
-            <svg class="coracao" viewBox="0 0 24 24" aria-hidden="true">
-              <path pathLength="1" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-          </div>
           <h2 class="fecho anima">Contamos com você</h2>
           <p class="poema anima">Sua presença fará deste dia<br>ainda mais especial.</p>
-          <div class="ornamento anima" aria-hidden="true"><span></span></div>
-          <p class="assinatura anima" data-cfg="nomes">Thalyta e Paulo</p>
+
+          <!-- Botão principal: pulsa para chamar a atenção e abre o formulário de confirmação -->
+          <div class="confirmar-caixa anima">
+            <button class="confirmar" type="button" data-acao="confirmar">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg>
+              <span>Confirmar presença</span>
+            </button>
+          </div>
+
+          <!-- Dúvidas: os botões de WhatsApp são criados pelo JS a partir de CONFIG.contatos -->
+          <div class="duvidas anima">
+            <p class="duvidas__texto">Tem alguma dúvida?<br>Pergunte para os noivos.</p>
+            <div class="duvidas__links" data-contatos></div>
+          </div>
         </div>
       </div>
 
@@ -227,10 +209,60 @@
       <line class="musica__risco" x1="3" y1="3" x2="21" y2="21"/>
     </svg>
   </button>
-  <audio id="audio" loop preload="none"></audio>
+  <audio id="audio" loop preload="auto"></audio>
 
   <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
 
+  <!-- ============ CONFIRMAÇÃO DE PRESENÇA (janela) ============ -->
+  <dialog id="modalConfirmar" class="modal" aria-labelledby="modalTitulo">
+    <div class="modal__cartao">
+      <button class="modal__fechar" type="button" data-fechar aria-label="Fechar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+
+      <!-- Etapa 1: formulário -->
+      <form id="formConfirmar" class="modal__etapa" novalidate>
+        <span class="rotulo">Confirmação</span>
+        <h2 id="modalTitulo" class="modal__titulo">Confirmar presença</h2>
+        <div class="ornamento" aria-hidden="true"><span></span></div>
+        <p class="modal__texto">Preencha seus dados para confirmar que estará conosco.</p>
+
+        <label class="campo">
+          <span>Nome completo</span>
+          <input name="nome" type="text" autocomplete="name" autocapitalize="words" maxlength="120" required autofocus>
+        </label>
+        <label class="campo">
+          <span>Telefone <i>(opcional)</i></span>
+          <input name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="(61) 90000-0000">
+        </label>
+
+        <p class="modal__erro" role="alert" hidden></p>
+
+        <button class="confirmar modal__enviar" type="submit">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg>
+          <span>Confirmar</span>
+        </button>
+      </form>
+
+      <!-- Etapa 2: agradecimento (aparece depois de confirmar) -->
+      <div id="modalObrigado" class="modal__etapa modal__obrigado" hidden>
+        <div class="flutuantes" aria-hidden="true"></div>
+        <div class="obrigado__conteudo">
+          <svg class="obrigado__coracao anima" style="--i:0" viewBox="0 0 24 24" aria-hidden="true">
+            <path pathLength="1" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          <h2 class="obrigado__titulo anima" style="--i:1">Obrigado, <span data-obrigado-nome></span>!</h2>
+          <div class="ornamento anima" style="--i:2" aria-hidden="true"><span></span></div>
+          <p class="obrigado__texto anima" style="--i:3">Sua presença está confirmada e fará deste dia ainda mais especial.<br>Mal podemos esperar para celebrar com você.</p>
+          <p class="obrigado__data anima" style="--i:4" data-obrigado-data></p>
+          <p class="obrigado__assinatura anima" style="--i:5">Com carinho,<br><b data-cfg="nomes">Thalyta e Paulo</b></p>
+          <button class="cta anima" style="--i:6" type="button" data-fechar><span>Fechar</span></button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="js/api.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Painel dos Noivos — Thalyta &amp; Paulo</title>
+  <!-- Página privada: não deve aparecer em buscadores nem ser linkada pelo convite -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#141b18">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+  <!-- ============ ENTRADA (senha) ============ -->
+  <main id="telaLogin" class="tela tela--login">
+    <form id="formLogin" class="cartao login" novalidate>
+      <span class="rotulo">Área reservada</span>
+      <h1 class="script">Painel dos noivos</h1>
+      <div class="ornamento" aria-hidden="true"><span></span></div>
+      <p class="login__texto">Digite a senha para ver quem já confirmou presença.</p>
+
+      <label class="campo">
+        <span>Senha</span>
+        <input id="campoSenha" type="password" autocomplete="current-password" required autofocus>
+      </label>
+      <p id="erroLogin" class="erro" role="alert" hidden></p>
+      <button id="btnEntrar" class="botao botao--ouro" type="submit"><span>Entrar</span></button>
+    </form>
+  </main>
+
+  <!-- ============ PAINEL ============ -->
+  <main id="telaPainel" class="tela tela--painel" hidden>
+    <header class="topo">
+      <div class="topo__titulo">
+        <span class="rotulo">Painel dos noivos</span>
+        <h1 class="script">Thalyta &amp; Paulo</h1>
+      </div>
+      <div class="topo__acoes">
+        <button id="btnAtualizar" class="botao botao--icone" type="button" aria-label="Atualizar lista" title="Atualizar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>
+        </button>
+        <button id="btnSair" class="botao botao--icone" type="button" aria-label="Sair" title="Sair">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H5v16h4"/><path d="M16 8l4 4-4 4"/><path d="M20 12H9"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="resumo cartao" aria-live="polite">
+      <div class="resumo__numero"><b id="total">0</b></div>
+      <div class="resumo__texto">
+        <span id="totalRotulo" class="resumo__rotulo">confirmados</span>
+        <span id="ultima" class="resumo__ultima"></span>
+      </div>
+    </section>
+
+    <section class="lista-area">
+      <div class="busca">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+        <input id="busca" type="search" placeholder="Buscar por nome" autocomplete="off" aria-label="Buscar por nome">
+      </div>
+
+      <p id="estadoLista" class="estado" hidden></p>
+      <ul id="lista" class="lista"></ul>
+    </section>
+
+    <p class="rodape">Atualizado automaticamente <span id="atualizadoEm"></span></p>
+  </main>
+
+  <!-- ============ EXCLUIR (pede a senha de novo) ============ -->
+  <dialog id="dlgExcluir" class="dialogo" aria-labelledby="dlgTitulo">
+    <form id="formExcluir" class="cartao dialogo__cartao" method="dialog" novalidate>
+      <h2 id="dlgTitulo" class="dialogo__titulo">Excluir confirmação</h2>
+      <p class="dialogo__texto">Remover <b id="dlgNome"></b> da lista de confirmados?<br>Digite a senha para confirmar.</p>
+      <label class="campo">
+        <span>Senha</span>
+        <input id="senhaExcluir" type="password" autocomplete="current-password" required>
+      </label>
+      <p id="erroExcluir" class="erro" role="alert" hidden></p>
+      <div class="dialogo__botoes">
+        <button class="botao" type="button" data-cancelar>Cancelar</button>
+        <button id="btnExcluir" class="botao botao--perigo" type="submit"><span>Excluir</span></button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
