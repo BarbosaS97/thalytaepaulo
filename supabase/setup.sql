@@ -13,8 +13,10 @@
 --       excluir_confirmado(id, senha)        → só com a senha do painel
 --   • A senha é conferida AQUI no banco (guardada com hash), nunca no navegador.
 --
--- SENHA INICIAL DO PAINEL: 123
---   Para trocar depois, rode:
+-- SENHA DO PAINEL: 07082026
+--   (se você já rodou este script antes com outra senha, rode o arquivo
+--    supabase/atualizar_senha.sql — este aqui não sobrescreve a senha existente)
+--   Para trocar por outra qualquer, rode:
 --     update public.painel_config
 --        set valor = extensions.crypt('NOVA_SENHA', extensions.gen_salt('bf'))
 --      where chave = 'senha_hash';
@@ -41,9 +43,9 @@ alter table public.painel_config enable row level security;
 revoke all on public.confirmados   from anon, authenticated;
 revoke all on public.painel_config from anon, authenticated;
 
--- Senha inicial (só é criada se ainda não existir)
+-- Senha do painel (só é criada se ainda não existir)
 insert into public.painel_config (chave, valor)
-values ('senha_hash', extensions.crypt('123', extensions.gen_salt('bf')))
+values ('senha_hash', extensions.crypt('07082026', extensions.gen_salt('bf')))
 on conflict (chave) do nothing;
 
 -- ---------- Conferência da senha (uso interno; não é chamável pelo site) ----------

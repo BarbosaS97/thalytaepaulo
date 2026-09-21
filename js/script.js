@@ -15,6 +15,9 @@
 /* ---------------------------------------------------------------------
    1. CONFIG
    --------------------------------------------------------------------- */
+/** Celular (ou tablet) em pé: usa a capa vertical, mais leve e nítida nessa tela. */
+const CAPA_VERTICAL = window.matchMedia("(orientation: portrait)").matches;
+
 const CONFIG = {
   // ---- Textos ----
   nomes: "Thalyta e Paulo",            // use " e " entre os nomes (vira "Thalyta / e / Paulo")
@@ -49,8 +52,12 @@ const CONFIG = {
   linkMapa: "https://maps.app.goo.gl/fzCWdRTDXXGtgAvj6",   // CENTREJUFE no Google Maps
 
   // ---- Arquivos (pasta /midias/) ----
-  videoCapa: "midias/video.mp4",       // vídeo de fundo da capa (mudo, em loop)
-  posterCapa: "midias/capa-video.jpg", // quadro exibido enquanto o vídeo carrega (ou se ele não existir)
+  // Capa: duas versões do mesmo vídeo. O celular em pé baixa a VERTICAL (720×1280, recortada em volta do
+  // casal, 5 MB, mais nítida na tela pequena); computador/tela deitada usa a horizontal (1080p).
+  videoCapa: "midias/video.mp4",                   // horizontal
+  videoCapaMobile: "midias/video-mobile.mp4",      // vertical
+  posterCapa: "midias/capa-video.jpg",             // quadro exibido enquanto o vídeo carrega (ou se ele falhar)
+  posterCapaMobile: "midias/capa-mobile.jpg",
   fotosPaginas: [                      // fundos das páginas 2, 3, 4 e 5 (nessa ordem)
     "midias/foto2.jpg",                //   2 — convite (pais e nomes)
     "midias/foto1.jpg",                //   3 — save the date
@@ -58,11 +65,12 @@ const CONFIG = {
     "midias/foto3.jpg"                 //   5 — confirmação de presença
   ],
   // Ponto de foco de cada foto/vídeo (evita cortar rostos em telas largas). Formato CSS: "x% y%"
-  posicaoCapa: "47% 50%",              // vale para o vídeo e para o quadro de reserva
+  posicaoCapa: "47% 50%",              // capa horizontal (vídeo e quadro de reserva)
+  posicaoCapaMobile: "50% 50%",        // capa vertical (o recorte já está centralizado no casal)
   posicaoFotos: ["50% 55%", "50% 80%", "50% 32%", "50% 62%"],
 
   // ---- Música ----
-  musica: "midias/musica.mp3",
+  musica: "midias/musica-web.mp3",     // mesma faixa em 128 kbps (2,7 MB); o arquivo original de 320 kbps continua na pasta
   musicaAutoplay: true,                // começa já na capa (ver nota em "5. Música de fundo")
   volumeMusica: 0.5                    // 0 a 1
 };
@@ -316,8 +324,8 @@ function carregarFoto(i) {
 /** Define a foto de cada página a partir do CONFIG (sem carregar ainda). */
 function prepararFotos() {
   const poster = document.querySelector("[data-capa-poster]");
-  poster.dataset.src = CONFIG.posterCapa;
-  poster.style.setProperty("--pos", CONFIG.posicaoCapa);
+  poster.dataset.src = CAPA_VERTICAL ? CONFIG.posterCapaMobile : CONFIG.posterCapa;
+  poster.style.setProperty("--pos", CAPA_VERTICAL ? CONFIG.posicaoCapaMobile : CONFIG.posicaoCapa);
 
   document.querySelectorAll("img[data-foto]").forEach(img => {
     const n = Number(img.dataset.foto);
@@ -328,6 +336,16 @@ function prepararFotos() {
   document.querySelectorAll(".pagina__foto").forEach(img => {
     img.addEventListener("error", () => { img.style.display = "none"; });
   });
+}
+
+/* Ao abrir o link, só a capa (quadro + vídeo) usa a internet. As fotos das páginas seguintes
+   só começam a baixar depois que o vídeo toca ou no primeiro toque — para o vídeo não brigar por banda. */
+let vizinhasLiberadas = false;
+function carregarVizinhas() { for (let k = -1; k <= 2; k++) carregarFoto(atual + k); }
+function liberarVizinhas() {
+  if (vizinhasLiberadas) return;
+  vizinhasLiberadas = true;
+  carregarVizinhas();
 }
 
 /** Atualiza tudo que depende da página atual. */
@@ -344,8 +362,8 @@ function atualizarEstado() {
   btnAnt.hidden  = atual === 0;
   btnProx.hidden = atual === TOTAL - 1;
 
-  // Carrega a foto desta página, da anterior e das próximas
-  for (let k = -1; k <= 2; k++) carregarFoto(atual + k);
+  // Carrega a foto desta página e, liberado o carregamento das vizinhas, também da anterior e das próximas
+  if (vizinhasLiberadas) carregarVizinhas(); else carregarFoto(atual);
 
   // Depois que a virada termina, "desativa" as páginas antigas (reinicia as animações) e pausa o vídeo
   setTimeout(() => {
@@ -359,6 +377,7 @@ function atualizarEstado() {
 function irPara(destino) {
   destino = Math.max(0, Math.min(TOTAL - 1, destino));
   if (destino === atual) return;
+  vizinhasLiberadas = true;                          // o convidado já está navegando: carrega tudo
   const origem = atual;
   atual = destino;
 
@@ -444,6 +463,7 @@ function aplicarArrasto(prog) {
 }
 
 livro.addEventListener("pointerdown", e => {
+  liberarVizinhas();                                  // a página de baixo precisa estar pronta se o gesto virar a página
   if (e.pointerType === "mouse" && e.button !== 0) return;
   arrasto = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now(), ativo: false, dir: 0, prog: 0 };
 });
@@ -507,15 +527,32 @@ livro.addEventListener("click", e => {
    --------------------------------------------------------------------- */
 const video = document.querySelector(".capa__video");
 
+/** Conexão que não vale gastar 5 MB de vídeo: "economizar dados" ligado ou rede 2G. */
+function conexaoFraca() {
+  const c = navigator.connection;
+  return !!c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ""));
+}
+
+/** Roda `fn` quando o vídeo começa a tocar (ou após `limite` ms; ou já, se não há vídeo).
+ *  Serve para adiar o que compete por banda com o vídeo (música, fotos das outras páginas). */
+function depoisDoVideo(fn, limite = 3500) {
+  if (!video.getAttribute("src")) return fn();
+  let feito = false;
+  const ir = () => { if (!feito) { feito = true; fn(); } };
+  video.addEventListener("playing", () => setTimeout(ir, 300), { once: true });
+  setTimeout(ir, limite);
+}
+
 function iniciarVideo() {
+  if (conexaoFraca()) return;                        // fica só o quadro de reserva (foto)
   video.muted = true;                                // necessário para o autoplay funcionar
   video.defaultMuted = true;
   video.setAttribute("playsinline", "");
-  video.style.setProperty("--pos", CONFIG.posicaoCapa);   // mesmo enquadramento do quadro de reserva
+  video.style.setProperty("--pos", CAPA_VERTICAL ? CONFIG.posicaoCapaMobile : CONFIG.posicaoCapa);
   // O vídeo só aparece (fade) quando começa a tocar; até lá (ou se falhar) fica a foto de reserva
   video.addEventListener("playing", () => video.classList.add("pronto"));
   video.addEventListener("error", () => video.classList.remove("pronto"));
-  video.src = CONFIG.videoCapa;
+  video.src = CAPA_VERTICAL ? CONFIG.videoCapaMobile : CONFIG.videoCapa;
   video.play().catch(() => { /* iOS em economia de energia: tenta de novo no primeiro toque */ });
 
   document.addEventListener("pointerup", () => {
@@ -543,9 +580,17 @@ function somBloqueado() {
   return CONFIG.musicaAutoplay && !!CONFIG.musica && !escolhaManual && !btnMusica.hidden && audio.paused;
 }
 
+/** O arquivo da música só começa a baixar aqui (depois do vídeo, ou no 1º gesto do convidado). */
+let audioPreparado = false;
+function prepararAudio() {
+  if (audioPreparado) return;
+  audioPreparado = true;
+  audio.preload = "auto";
+  audio.src = CONFIG.musica;
+}
+
 function iniciarMusica() {
   if (!CONFIG.musica) return;
-  audio.src = CONFIG.musica;
   audio.volume = CONFIG.volumeMusica;
   btnMusica.hidden = false;
   audio.addEventListener("error", () => { btnMusica.hidden = true; });   // arquivo ausente: esconde o botão
@@ -564,6 +609,7 @@ function iniciarMusica() {
 
   btnMusica.addEventListener("click", () => {
     escolhaManual = true;
+    prepararAudio();
     if (audio.paused) audio.play().catch(() => mostrarAviso("Não foi possível tocar a música."));
     else audio.pause();
     sincronizar();
@@ -578,14 +624,16 @@ function iniciarMusica() {
        um deles como "gesto válido" (ex.: no celular só vale ao soltar o dedo). */
     const eventos = ["pointerdown", "pointerup", "touchend", "click", "keydown"];
     const limpar = () => eventos.forEach(ev => document.removeEventListener(ev, tentar, true));
-    const tocar = () => audio.play().then(limpar).catch(() => { /* aguarda o próximo gesto */ });
+    const tocar = () => { prepararAudio(); return audio.play().then(limpar).catch(() => { /* aguarda o próximo gesto */ }); };
     function tentar(e) {
       if (escolhaManual || !audio.paused) return limpar();
       if (e.target.closest && e.target.closest("#btnMusica")) return;   // o botão cuida de si
       tocar();
     }
     eventos.forEach(ev => document.addEventListener(ev, tentar, true));   // captura: roda antes de qualquer outro tratamento
-    tocar();
+    depoisDoVideo(() => { if (!escolhaManual && audio.paused) tocar(); });  // tentativa sem gesto, sem atrapalhar o vídeo
+  } else {
+    depoisDoVideo(prepararAudio);
   }
   sincronizar();
 }
@@ -725,23 +773,27 @@ function criarCoracoes(caixa, quantidade = 14) {
 }
 
 function iniciar() {
+  // Atalho: index.html#pagina-3 abre direto na página 3 (útil para testar cada página)
+  const m = location.hash.match(/pagina-(\d+)/);
+  if (m) atual = Math.max(0, Math.min(TOTAL - 1, Number(m[1]) - 1));
+  if (atual !== 0) vizinhasLiberadas = true;
+
+  // 1º: o que aparece primeiro — quadro de reserva e vídeo da capa (só se a capa é a página aberta)
+  prepararFotos();
+  carregarFoto(atual);
+  if (atual === 0) iniciarVideo();
+
+  // 2º: o resto (leve, síncrono)
   preencherTextos();
   iniciarContagem();
   montarContatos();
   configurarLinks();
   prepararPaginas();
-  prepararFotos();
   criarCoracoes(document.querySelector(".pagina--final .flutuantes"));
   criarCoracoes(etapaObrigado.querySelector(".flutuantes"), 10);
-
-  // Atalho: index.html#pagina-3 abre direto na página 3 (útil para testar cada página)
-  const m = location.hash.match(/pagina-(\d+)/);
-  if (m) atual = Math.max(0, Math.min(TOTAL - 1, Number(m[1]) - 1));
-
-  carregarFoto(0);
   atualizarEstado();
-  iniciarVideo();
   iniciarMusica();
+  depoisDoVideo(liberarVizinhas);
 }
 
 iniciar();

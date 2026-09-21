@@ -220,7 +220,7 @@ a { color: inherit; }
   padding:
     max(env(safe-area-inset-top), 24px)
     24px
-    calc(124px + env(safe-area-inset-bottom));      /* deixa livre a "ponta dobrada" e as bolinhas */
+    calc(112px + env(safe-area-inset-bottom));      /* deixa livre a "ponta dobrada" e as bolinhas */
   padding-top: calc(max(env(safe-area-inset-top), 16px) + 48px);   /* libera o botão de música */
   overflow-y: auto;
   scrollbar-width: none;
@@ -769,7 +769,7 @@ a { color: inherit; }
    O quadrado --s tem duas metades: o verso dobrado do papel (canto superior esquerdo,
    com o texto) e o que aparece por baixo dele (canto inferior direito, escuro). */
 .dobra {
-  --s: clamp(108px, 30vw, 148px);
+  --s: clamp(84px, 22vw, 148px);                   /* ~86px em celular de 390px */
   position: absolute;
   right: 0; bottom: 0;
   z-index: 5;
@@ -800,7 +800,7 @@ a { color: inherit; }
   left: 36.6%; top: 36.6%;                         /* centro do texto, paralelo à dobra */
   transform: translate(-50%, -50%) rotate(-45deg);
   white-space: nowrap;
-  font: italic 600 calc(var(--s) * .128)/1 var(--serif);
+  font: italic 600 calc(var(--s) * .14)/1 var(--serif);
   letter-spacing: .01em;
   color: #5a4824;
 }

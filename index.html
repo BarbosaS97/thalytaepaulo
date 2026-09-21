@@ -10,7 +10,13 @@
   <!-- Fontes: Cormorant Garamond (títulos), Jost (corpo), Pinyon Script (nomes) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <!-- Não bloqueante: as fontes não seguram o início do vídeo (display=swap troca a fonte assim que chega) -->
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap"></noscript>
+
+  <!-- Quadro de reserva da capa: pedido já na leitura do HTML (o certo para a orientação do aparelho) -->
+  <link rel="preload" as="image" href="midias/capa-mobile.jpg" media="(orientation: portrait)" fetchpriority="high">
+  <link rel="preload" as="image" href="midias/capa-video.jpg" media="(orientation: landscape)" fetchpriority="high">
 
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -209,7 +215,7 @@
       <line class="musica__risco" x1="3" y1="3" x2="21" y2="21"/>
     </svg>
   </button>
-  <audio id="audio" loop preload="auto"></audio>
+  <audio id="audio" loop preload="none"></audio>
 
   <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
 
