@@ -833,6 +833,22 @@ a { color: inherit; }
   .seta:hover { background: var(--ouro); color: var(--noite); }
 }
 
+/* Crédito discreto do template */
+.credito {
+  position: fixed;
+  left: 14px;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 40;
+  font: 300 .62rem/1 var(--sans);
+  letter-spacing: .02em;
+  color: var(--marfim);
+  opacity: .32;
+  text-decoration: none;
+  transition: opacity .3s;
+}
+.credito span { text-decoration: underline; text-underline-offset: 2px; }
+.credito:hover, .credito:focus-visible { opacity: .8; }
+
 .aviso {
   position: fixed;
   left: 50%;
