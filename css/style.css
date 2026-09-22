@@ -667,6 +667,19 @@ a { color: inherit; }
 .campo input::placeholder { color: rgba(251, 246, 236, .35); }
 .campo input:focus { outline: none; border-color: var(--ouro); box-shadow: 0 0 0 3px rgba(220, 196, 143, .2); }
 
+.modal__aviso {
+  width: 100%;
+  margin: 0;
+  padding: .65rem .9rem;
+  border: 1px solid rgba(220, 196, 143, .35);
+  border-radius: 12px;
+  background: rgba(220, 196, 143, .08);
+  font: 400 .78rem/1.5 var(--sans);
+  letter-spacing: .01em;
+  color: var(--ouro-claro);
+  text-align: left;
+}
+
 .modal__erro {
   width: 100%;
   margin: 0;
