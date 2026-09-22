@@ -12,6 +12,11 @@
 
 "use strict";
 
+/** Abra o link com "?demo" no final (ex.: ...index.html?demo) para mostrar este convite como
+ *  exemplo de portfólio: some o endereço e desliga "Saiba como chegar" e "Confirmar presença".
+ *  O link normal (sem "?demo"), que já foi enviado aos convidados, continua funcionando igual. */
+const MODO_DEMO = /[?&]demo(?:=1)?(?:&|$)/i.test(location.search);
+
 /* ---------------------------------------------------------------------
    1. CONFIG
    --------------------------------------------------------------------- */
@@ -139,7 +144,7 @@ function montarValores() {
     chegada: textoChegada(),
     local: CONFIG.local,
     localDescricao: CONFIG.localDescricao,
-    endereco: CONFIG.endereco,
+    endereco: MODO_DEMO ? ["Endereço disponível para convidados confirmados"] : CONFIG.endereco,
     paisNoiva: CONFIG.paisNoiva,
     paisNoivo: CONFIG.paisNoivo
   };
@@ -211,6 +216,11 @@ function contatoDeConfirmacao() {
 function montarContatos() {
   const caixa = document.querySelector("[data-contatos]");
   if (!caixa) return;
+  if (MODO_DEMO) {                                      // exemplo de portfólio: não expõe o WhatsApp pessoal dos noivos
+    const bloco = caixa.closest(".duvidas");
+    if (bloco) bloco.hidden = true;
+    return;
+  }
   const svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.6a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.5-4.3a8.5 8.5 0 1 1 15.5-4.6z"/><path d="M9.2 8.6c.2 2.4 2.3 4.7 5.3 5.8l1.3-1.3-1.9-1-.9.8a4.6 4.6 0 0 1-2-2l.8-.9-1-1.9-1.6.5z"/></svg>';
   CONFIG.contatos.forEach(c => {
     const a = document.createElement("a");
@@ -231,9 +241,16 @@ function montarContatos() {
 
 /** Liga o botão "Saiba como chegar" ao mapa. Se o link for "#", mostra um aviso em vez de navegar. */
 function configurarLinks() {
-  const mapa = { mapa: CONFIG.linkMapa };
+  const mapa = { mapa: MODO_DEMO ? "#" : CONFIG.linkMapa };
   document.querySelectorAll("a[data-link]").forEach(a => {
     const url = mapa[a.dataset.link];
+    if (MODO_DEMO) {
+      a.addEventListener("click", e => {
+        e.preventDefault();
+        mostrarAviso("Este é um convite de exemplo. Fale com a gente para criar o seu!");
+      });
+      return;
+    }
     if (url && url !== "#") {
       a.href = url;
       a.target = "_blank";
@@ -700,6 +717,10 @@ function mostrarEtapa(obrigado) {
 }
 
 function abrirConfirmacao() {
+  if (MODO_DEMO) {
+    mostrarAviso("Este é um convite de exemplo. Fale com a gente para criar o seu!");
+    return;
+  }
   if (typeof modal.showModal !== "function") {         // navegador muito antigo: cai no WhatsApp
     const c = contatoDeConfirmacao();
     if (c) window.open(linkWhatsApp(c.whatsapp, CONFIG.mensagemConfirmacao), "_blank", "noopener");
@@ -772,6 +793,17 @@ function criarCoracoes(caixa, quantidade = 14) {
   }
 }
 
+/** Batimento diário: cada visitante avisa o banco (no máximo 1x por dia neste aparelho). Silencioso:
+ *  se falhar, ninguém percebe. Existe para o banco gratuito do Supabase não ser pausado por inatividade. */
+function baterPontoDoBanco() {
+  try {
+    const hoje = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem("bancoAtivoEm") === hoje) return;
+    localStorage.setItem("bancoAtivoEm", hoje);
+  } catch (_) { /* armazenamento bloqueado: segue sem limite diário */ }
+  Api.manterAtivo().catch(() => {});
+}
+
 function iniciar() {
   // Atalho: index.html#pagina-3 abre direto na página 3 (útil para testar cada página)
   const m = location.hash.match(/pagina-(\d+)/);
@@ -794,6 +826,7 @@ function iniciar() {
   atualizarEstado();
   iniciarMusica();
   depoisDoVideo(liberarVizinhas);
+  depoisDoVideo(() => setTimeout(baterPontoDoBanco, 2000), 6000);   // por último: não compete com o vídeo
 }
 
 iniciar();
