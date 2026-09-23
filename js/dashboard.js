@@ -128,7 +128,8 @@ const ICONE_LIXO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16
 function desenhar() {
   const total = confirmados.length;
   const termo = normalizar(buscaEl.value.trim());
-  const visiveis = termo ? confirmados.filter(p => normalizar(p.nome).includes(termo)) : confirmados;
+  const visiveis = (termo ? confirmados.filter(p => normalizar(p.nome).includes(termo)) : confirmados.slice())
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
 
   $("total").textContent = total;
   $("totalRotulo").textContent = total === 1 ? "confirmado" : "confirmados";
