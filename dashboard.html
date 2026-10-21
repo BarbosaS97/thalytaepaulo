@@ -84,6 +84,17 @@
         </div>
       </section>
 
+      <section class="medidor cartao" aria-live="polite">
+        <div class="medidor__topo">
+          <span class="rotulo">Espaço usado</span>
+          <span id="medidorTexto" class="medidor__texto"></span>
+        </div>
+        <div class="medidor__barra" role="progressbar" aria-label="Espaço usado no armazenamento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <i id="medidorBarra"></i>
+        </div>
+        <p id="medidorAviso" class="medidor__aviso" hidden></p>
+      </section>
+
       <section class="qr cartao">
         <img id="imgQr" src="midias/qrcode-fotos.png" alt="QR Code para os convidados enviarem fotos e vídeos" width="112" height="112">
         <div class="qr__texto">

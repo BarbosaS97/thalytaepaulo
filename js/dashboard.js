@@ -239,6 +239,32 @@ async function carregarMidias() {
   desenharMidias();
 }
 
+/** Espaço contratado no Cloudflare R2 (plano gratuito). O total soma só os arquivos originais (as miniaturas são desprezíveis). */
+const LIMITE_ARMAZENAMENTO = 10 * 1024 ** 3;
+
+function formatarBytes(b) {
+  if (b >= 1024 ** 3) return `${(b / 1024 ** 3).toFixed(2).replace(".", ",")} GB`;
+  if (b >= 1024 ** 2) return `${(b / 1024 ** 2).toFixed(b >= 100 * 1024 ** 2 ? 0 : 1).replace(".", ",")} MB`;
+  return `${Math.round(b / 1024)} KB`;
+}
+
+function desenharMedidor() {
+  const usado = midias.reduce((soma, m) => soma + (m.tamanho || 0), 0);
+  const pct = Math.min(100, (usado / LIMITE_ARMAZENAMENTO) * 100);
+  const caixa = $("medidorBarra").closest(".medidor");
+  const aviso = $("medidorAviso");
+
+  $("medidorTexto").textContent = `${formatarBytes(usado)} de ${formatarBytes(LIMITE_ARMAZENAMENTO)} · ${pct.toFixed(pct < 10 ? 1 : 0).replace(".", ",")}%`;
+  $("medidorBarra").style.width = `${pct}%`;
+  $("medidorBarra").parentElement.setAttribute("aria-valuenow", String(Math.round(pct)));
+  caixa.classList.toggle("medidor--atencao", pct >= 70 && pct < 90);
+  caixa.classList.toggle("medidor--cheio", pct >= 90);
+
+  aviso.hidden = pct < 70;
+  if (pct >= 90) aviso.textContent = "Quase cheio! Baixe as mídias e exclua as que já foram salvas para liberar espaço; novos envios podem falhar.";
+  else if (pct >= 70) aviso.textContent = "Atenção: o espaço está acabando. Vá baixando as mídias e apagando as que já foram salvas.";
+}
+
 function nomeDoArquivo(m) {
   const achado = /\.([a-z0-9]+)$/i.exec(m.caminho);
   const ext = achado ? achado[1].toLowerCase() : (m.tipo === "video" ? "mp4" : "jpg");
@@ -279,6 +305,7 @@ function botaoMidia(rotulo, icone, classe, aoClicar) {
 }
 
 function desenharMidias() {
+  desenharMedidor();
   const fotos = midias.filter(m => m.tipo === "foto").length;
   const videos = midias.length - fotos;
   $("totalMidias").textContent = midias.length;
