@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/fotos.css">
 </head>
 <body>
 
@@ -49,6 +50,12 @@
       </div>
     </header>
 
+    <nav class="abas" role="tablist" aria-label="Seções do painel">
+      <button id="abaConfirmados" class="aba" role="tab" type="button" aria-selected="true" aria-controls="painelConfirmados">Confirmados</button>
+      <button id="abaMidias" class="aba" role="tab" type="button" aria-selected="false" aria-controls="painelMidias">Mídias convidados</button>
+    </nav>
+
+    <div id="painelConfirmados" role="tabpanel" aria-labelledby="abaConfirmados">
     <section class="resumo cartao" aria-live="polite">
       <div class="resumo__numero"><b id="total">0</b></div>
       <div class="resumo__texto">
@@ -66,6 +73,38 @@
       <p id="estadoLista" class="estado" hidden></p>
       <ul id="lista" class="lista"></ul>
     </section>
+    </div>
+
+    <div id="painelMidias" role="tabpanel" aria-labelledby="abaMidias" hidden>
+      <section class="resumo cartao" aria-live="polite">
+        <div class="resumo__numero"><b id="totalMidias">0</b></div>
+        <div class="resumo__texto">
+          <span id="totalMidiasRotulo" class="resumo__rotulo">arquivos</span>
+          <span id="detalheMidias" class="resumo__ultima"></span>
+        </div>
+      </section>
+
+      <section class="qr cartao">
+        <img id="imgQr" src="midias/qrcode-fotos.png" alt="QR Code para os convidados enviarem fotos e vídeos" width="112" height="112">
+        <div class="qr__texto">
+          <p>Os convidados leem o QR Code e enviam fotos e vídeos direto do celular.</p>
+          <div class="qr__botoes">
+            <a class="botao botao--pequeno" href="midias/qrcode-fotos-cartaz.png" download="qrcode-fotos-thalyta-paulo.png">Baixar cartaz</a>
+            <a class="botao botao--pequeno" href="midias/qrcode-fotos.png" download="qrcode-simples-thalyta-paulo.png">Baixar QR</a>
+            <a class="botao botao--pequeno" href="fotos.html" target="_blank" rel="noopener">Abrir página</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="filtros" role="group" aria-label="Filtrar mídias">
+        <button class="filtro" type="button" data-filtro="todas" aria-pressed="true">Todas</button>
+        <button class="filtro" type="button" data-filtro="foto" aria-pressed="false">Fotos</button>
+        <button class="filtro" type="button" data-filtro="video" aria-pressed="false">Vídeos</button>
+      </div>
+
+      <p id="estadoMidias" class="estado" hidden></p>
+      <ul id="grade" class="grade"></ul>
+    </div>
 
     <p class="rodape">Atualizado automaticamente <span id="atualizadoEm"></span></p>
   </main>
@@ -74,7 +113,7 @@
   <dialog id="dlgExcluir" class="dialogo" aria-labelledby="dlgTitulo">
     <form id="formExcluir" class="cartao dialogo__cartao" method="dialog" novalidate>
       <h2 id="dlgTitulo" class="dialogo__titulo">Excluir confirmação</h2>
-      <p class="dialogo__texto">Remover <b id="dlgNome"></b> da lista de confirmados?<br>Digite a senha para confirmar.</p>
+      <p class="dialogo__texto">Remover <b id="dlgNome"></b> <span id="dlgDe">da lista de confirmados</span>?<br>Digite a senha para confirmar.</p>
       <label class="campo">
         <span>Senha</span>
         <input id="senhaExcluir" type="password" autocomplete="current-password" required>
@@ -85,6 +124,21 @@
         <button id="btnExcluir" class="botao botao--perigo" type="submit"><span>Excluir</span></button>
       </div>
     </form>
+  </dialog>
+
+  <!-- ============ VISUALIZADOR DE FOTO/VÍDEO ============ -->
+  <dialog id="dlgVisor" class="visor" aria-label="Visualizar mídia">
+    <button id="btnFecharVisor" class="botao botao--icone visor__fechar" type="button" aria-label="Fechar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div id="visorPalco" class="visor__palco"></div>
+    <div class="visor__barra">
+      <div id="visorInfo" class="visor__info"></div>
+      <div class="visor__botoes">
+        <button id="visorBaixar" class="botao botao--pequeno" type="button">Baixar</button>
+        <button id="visorExcluir" class="botao botao--pequeno botao--perigo" type="button">Excluir</button>
+      </div>
+    </div>
   </dialog>
 
   <div id="aviso" class="aviso" role="status" aria-live="polite"></div>

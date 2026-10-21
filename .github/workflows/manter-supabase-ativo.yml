@@ -1,0 +1,39 @@
+# Evita que o banco gratuito do Supabase seja pausado por falta de uso (7 dias).
+# Todo dia chama a função manter_ativo() — criada por supabase/manter_ativo.sql —,
+# que grava um registro e apaga o anterior. Não mexe nas confirmações de presença.
+#
+# Se uma execução falhar, o GitHub avisa por e-mail. Para testar agora:
+#   aba "Actions" do repositório → "Manter Supabase ativo" → "Run workflow".
+name: Manter Supabase ativo
+
+on:
+  schedule:
+    - cron: "17 9 * * *"     # todo dia às 09:17 UTC (06:17 em Brasília)
+  workflow_dispatch:          # permite rodar manualmente
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: https://vlwvprrmgciymuhbzupv.supabase.co
+      # Chave "anon" PÚBLICA (a mesma de js/api.js): não dá acesso a nada além das funções liberadas.
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsd3ZwcnJtZ2NpeW11aGJ6dXB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5OTc0OTMsImV4cCI6MjEwNTU3MzQ5M30.1qgbRYwGJRoZHkXjA-81Wo7iI5SCr1r8wD11iXEHdI8
+    steps:
+      - name: Chamar manter_ativo()
+        run: |
+          set -e
+          resposta=$(curl --silent --show-error --max-time 60 --retry 3 --retry-delay 10 \
+            --write-out "\n%{http_code}" \
+            --request POST "$SUPABASE_URL/rest/v1/rpc/manter_ativo" \
+            --header "apikey: $SUPABASE_ANON_KEY" \
+            --header "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            --header "Content-Type: application/json" \
+            --data '{}')
+          codigo=$(echo "$resposta" | tail -n 1)
+          corpo=$(echo "$resposta" | sed '$d')
+          echo "HTTP $codigo — $corpo"
+          if [ "$codigo" != "200" ]; then
+            echo "::error::Falha ao manter o Supabase ativo (HTTP $codigo). Confirme que supabase/manter_ativo.sql foi executado e que o projeto não está pausado."
+            exit 1
+          fi
